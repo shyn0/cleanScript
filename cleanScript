@@ -1,0 +1,183 @@
+#!/bin/bash
+#shyno
+#cleanScript
+
+banner()
+{
+clear;
+sleep 0.1;
+echo "";
+echo -e "\e[1;36mcleanScript\e[0m";
+echo "";
+}
+
+input()
+{
+echo "";
+echo -en "\e[1;30m (\e[0m""\e[37m#\e[0m""\e[1;30m_\e[0m""\e[37m#\e[0m";
+echo -en "\e[1;30m)\e[0m" "\e[1;37m> \e[0m";
+}
+
+
+error()
+{
+clear;
+echo -e "\e[1;31mERROR: write the correct sign..\e[0m";
+sleep 0.6;
+}
+
+
+anyKey()
+{
+echo "";
+echo -en "\e[1;30mpress any key: \e[0m";
+ read choice
+    case $choice in
+"") $1; ;;
+*) $1; ;;
+    esac;
+}
+
+
+checkingRootF()
+{
+  if [[ -d /data/data/com.termux/files/home ]]; then
+      if [[ -f /data/data/com.termux/files/usr/bin/tsudo ]]; then
+tsudo rm -rf "$pathItem";
+      elif [[ -f /data/data/com.termux/files/usr/bin/sudo ]]; then
+sudo rm -rf "$pathItem";
+      else
+rm -rf "$pathItem";
+      fi;
+  else
+      if [[ -f /bin/sudo ]]; then
+sudo rm -rf "$pathItem";
+      else
+rm -rf "$pathItem";
+      fi;
+  fi;
+}
+
+
+slashCheckingWithoutRootD()
+{
+if [[ "${pathItem:${#pathItem}-1}" == "/" ]]; then
+rm -rf "$pathItem"*;
+  else
+rm -rf "$pathItem"/*;
+  fi;
+}
+
+
+
+slashCheckingRootD()
+{
+  if [[ "${pathItem:${#pathItem}-1}" == "/" ]]; then
+"$root" rm -rf "$pathItem"*;
+  else
+"$root" rm -rf "$pathItem"/*;
+  fi;
+}
+
+
+
+checkingRootD()
+{
+  if [[ -d /data/data/com.termux/files/home ]]; then
+      if [[ -f /data/data/com.termux/files/usr/bin/tsudo ]]; then
+root="tsudo"
+slashCheckingRootD;
+      elif [[ -f /data/data/com.termux/files/usr/bin/sudo ]]; then
+root="sudo"
+slashCheckingRootD;
+      else
+slashCheckingWithoutRootD;
+      fi;
+  else
+      if [[ -f /bin/sudo ]]; then
+root="sudo";
+slashCheckingRootD;
+      else
+slashCheckingWithoutRootD;
+      fi;
+  fi;
+}
+
+
+clearAllLog()
+{
+banner;
+rm -rf data/log/*
+echo -e "\e[1;30mlog cleared\e[0m";
+anyKey shyno;
+}
+
+
+cleaning()
+{
+banner;
+dateValue=$(date +%F);
+timeValue=$(date +%H.%M);
+path=( $(source ./data/config/path/paths.sh) );
+  for pathItem in ${path[@]}
+do
+    if [[ -d "$pathItem" ]]; then
+deleteAmount=( $(ls "$pathItem") );
+deletePath=$( (ls -1 "$pathItem") );
+checkingRootD;
+echo -e "\e[1;37mDirectory:\e[0m" "\e[1;36m$pathItem\e[0m";
+echo -en "\e[1;35mRemoved\e[0m:" "\e[1;36m${#deleteAmount[@]} \e[0m";
+echo -e "\e[1;35mfile(s)\e[0m";
+echo "";
+#saveToLog
+echo "Directory: $pathItem" >> data/log/"$dateValue..$timeValue".txt;
+echo "Removed: ${#deleteAmount[@]}" >> data/log/"$dateValue..$timeValue".txt;
+echo "" >> data/log/"$dateValue..$timeValue".txt;
+echo "$deletePath" >> data/log/"$dateValue..$timeValue".txt;
+echo "" >> data/log/"$dateValue..$timeValue".txt;
+echo "" >> data/log/"$dateValue..$timeValue".txt;
+sleep 0.5
+    elif [[ -f "$pathItem" ]]; then
+checkingRootF;
+echo -e "\e[1;35mRemoved:\e[0m" "\e[1;36m$pathItem\e[0m";
+echo "";
+#saveToLog
+echo "Removed: $pathItem" >> data/log/"$dateValue..$timeValue".txt;
+echo "" >> data/log/"$dateValue..$timeValue".txt;
+echo "" >> data/log/"$dateValue..$timeValue".txt;
+    else
+echo -e "\e[1;37mPath:\e[0m" "\e[1;31m$pathItem\e[0m" "\e[1;37mdoesn't exist\e[0m";
+echo "";
+#saveToLog
+echo "Path: $pathItem doesn't exist" >> data/log/"$dateValue..$timeValue".txt;
+echo "" >> data/log/"$dateValue..$timeValue".txt;
+echo "" >> data/log/"$dateValue..$timeValue".txt;
+sleep 0.5;
+    fi;
+done;
+echo -e "\e[1;36mComplete..";
+echo -e "\e[1;36mCheck logs";
+anyKey shyno;
+}
+
+
+shyno()
+{
+banner;
+echo -e "\e[37mChoose the point:\e[0m";
+echo "";
+echo -e "\e[1;30m0. cleaning\e[0m";
+echo -e "\e[1;30m1. add path\e[0m";
+echo -e "\e[1;30m2. clear all log\e[0m";
+echo -e "\e[1;30mx. exit\e[0m";
+input;
+ read choice
+    case $choice in
+0) cleaning; ;;
+1) nano data/config/path/paths.sh; shyno; ;;
+2) clearAllLog; ;;
+"x") echo ""; exit 0; ;;
+*) error; shyno; ;;
+    esac;
+}
+shyno;
